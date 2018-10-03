@@ -4,11 +4,15 @@
  */
 package controlador;
 
-import static com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type.Int;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -21,18 +25,40 @@ import modelo.Usuario;
  * @author Usuario
  */
 public class FormularioUsuarios extends HttpServlet {
-
     /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
+     * Handles the HTTP
+     * <code>GET</code> method.
      *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        RequestDispatcher rd = request.getRequestDispatcher("jsp/formulario-usuario.jsp");
+        
+        List<Usuario> listaUsuarios = new ArrayList<>();
+        
+        request.setAttribute("lista", listaUsuarios);
+        
+        rd.forward(request, response);
+    
+    }
+    
+
+    /**
+     * Handles the HTTP
+     * <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         RequestDispatcher rd = request.getRequestDispatcher("jsp/formulario-usuario.jsp");
         
@@ -49,61 +75,29 @@ public class FormularioUsuarios extends HttpServlet {
         n.telefono = telefono;
         n.edad = edad;
         
+        guardarUsuario (n);
+        
         List<Usuario> listaUsuarios = new ArrayList<>();
         listaUsuarios.add(n);
         
-        Usuario n2 = new Usuario();
-        n2.nombre = "marimaca";
-        n2.nacimiento = "15/08/2000";
-        n2.cedula = "123'456'76";
-        n2.telefono = "543-21-55";
-        n2.edad = "18-anios";
-        
-        listaUsuarios.add(n2);
-        
-        Usuario n3 = new Usuario();
-        n3.nombre = "rogelio";
-        n3.nacimiento = "11/11/1999";
-        n3.cedula = "987'654'77";
-        n3.telefono = "582-29-21";
-        n3.edad = "18-anios";
-        
-        listaUsuarios.add(n3);
         
         request.setAttribute("lista", listaUsuarios);
         
         rd.forward(request, response);
     }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP
-     * <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+    
+    public void guardarUsuario(Usuario n){
+        try {
+            Connection conexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/animal", "root", "");
+            PreparedStatement ps = conexion.prepareStatement("INSERT INTO usuarios (nombre, nacimiento, cedula, telefono, edad) VALUES (?,?,?,?,?)");
+            ps.setString(1, n.nombre);
+            ps.setString(2, n.nacimiento);
+            ps.setString(3, n.cedula);
+            ps.setString(4, n.telefono);
+            ps.setString(5, n.edad);
+        } catch (SQLException ex) {
+            Logger.getLogger(FormularioUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -115,4 +109,6 @@ public class FormularioUsuarios extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
+
 }
